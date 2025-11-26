@@ -21,9 +21,25 @@ class BaseDeDatos{
        $consulta = $this->pdo->prepare("INSERT INTO `usuarios` (`email`, `password`) VALUES ( :email, :contrasena)");
 		$array = [
 			":email" => $email,
-            ":contrasena" => $contrasena
+            ":contrasena" => md5($contrasena)
 		];
 		$consulta->execute($array);
 		
     }
+
+	function comprobarUsuario($email,$password){
+		$consulta = $this->pdo->prepare("SELECT count(*) AS res FROM `usuarios` WHERE email = :email AND password= :password");
+		$array = [
+			":email" => $email,
+            ":password" => md5($password)
+		];
+		$consulta->execute($array);
+		$res = $consulta->fetchAll();
+		if($res == 0){
+			return false;
+		}else{
+			return true;
+		}
+
+	}
 }
