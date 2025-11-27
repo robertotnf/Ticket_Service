@@ -1,12 +1,9 @@
-drop database serviceticket;
-create database serviceticket;
-use serviceticket;
 -- phpMyAdmin SQL Dump
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 07-08-2025 a las 10:14:44
+-- Tiempo de generación: 25-08-2025 a las 09:30:14
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.0.30
 
@@ -35,9 +32,6 @@ CREATE TABLE `categoria` (
   `categoria` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
-ALTER TABLE `categoria`
-  ADD PRIMARY KEY (`id`);
-
 --
 -- Volcado de datos para la tabla `categoria`
 --
@@ -61,8 +55,6 @@ CREATE TABLE `departamento` (
   `nom_dep` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
-ALTER TABLE `departamento`
-  ADD PRIMARY KEY (`cod`);
 --
 -- Volcado de datos para la tabla `departamento`
 --
@@ -102,16 +94,16 @@ INSERT INTO `estado` (`id`, `estado`) VALUES
 CREATE TABLE `incidencia` (
   `id` int(11) NOT NULL,
   `usuario` int(50) NOT NULL,
-  `nom_dep` int(50) NOT NULL,
+  `departamento` int(50) NOT NULL,
   `asunto` varchar(20) NOT NULL,
   `descripcion` text NOT NULL,
   `categoria` int(50) NOT NULL,
   `problematica` int(50) NOT NULL,
-  `resolucion` int(50) DEFAULT NULL,
   `estado` int(50) NOT NULL,
-  `incidencia` varchar(50) NOT NULL,
   `fecha_inicio` datetime NOT NULL,
-  `fecha_fin` datetime NOT NULL
+  `fecha_fin` datetime NOT NULL,
+  `resolucion` varchar(50) NOT NULL,
+  `usuario_res` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
 -- --------------------------------------------------------
@@ -146,20 +138,51 @@ INSERT INTO `problematica` (`id`, `problematica`) VALUES
 CREATE TABLE `usuarios` (
   `id` int(11) NOT NULL,
   `email` varchar(100) NOT NULL,
-  `password` varchar(500) NOT NULL
+  `password` varchar(500) NOT NULL,
+  `administrador` tinyint(1) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Volcado de datos para la tabla `usuarios`
 --
 
-INSERT INTO `usuarios` (`id`, `email`, `password`) VALUES
-(1, 'roberto.tfe@hotmail.com', 'e10adc3949ba59abbe56e057f20f883e\r\n'),
-(7, 'j.i@gmail.com', 'e10adc3949ba59abbe56e057f20f883e');
+INSERT INTO `usuarios` (`id`, `email`, `password`, `administrador`) VALUES
+(1, 'roberto.tfe@hotmail.com', 'e10adc3949ba59abbe56e057f20f883e', 0),
+(14, 'aaaatien@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 1);
 
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `categoria`
+--
+ALTER TABLE `categoria`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `departamento`
+--
+ALTER TABLE `departamento`
+  ADD PRIMARY KEY (`cod`);
+
+--
+-- Indices de la tabla `estado`
+--
+ALTER TABLE `estado`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `incidencia`
+--
+ALTER TABLE `incidencia`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indices de la tabla `problematica`
+--
+ALTER TABLE `problematica`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indices de la tabla `usuarios`
@@ -172,51 +195,50 @@ ALTER TABLE `usuarios`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `categoria`
+--
+ALTER TABLE `categoria`
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT de la tabla `departamento`
+--
+ALTER TABLE `departamento`
+  MODIFY `cod` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- AUTO_INCREMENT de la tabla `estado`
+--
+ALTER TABLE `estado`
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT de la tabla `incidencia`
+--
+ALTER TABLE `incidencia`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT de la tabla `problematica`
+--
+ALTER TABLE `problematica`
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 COMMIT;
-
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-
-
-ALTER TABLE `estado`
-  ADD PRIMARY KEY (`id`);
-
-ALTER TABLE `incidencia`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `usuario` (`usuario`),
-  ADD UNIQUE KEY `categoria` (`categoria`),
-  ADD UNIQUE KEY `problematica` (`problematica`),
-  ADD UNIQUE KEY `estado` (`estado`);
-
-ALTER TABLE `problematica`
-  ADD PRIMARY KEY (`id`);
-  
-ALTER TABLE `categoria`
-  MODIFY `id` int(50) NOT NULL  AUTO_INCREMENT;
-
-ALTER TABLE `departamento`
-  MODIFY `cod` int(50) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `estado`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `incidencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
-ALTER TABLE `problematica`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT;
 
 ALTER TABLE `incidencia`
   ADD CONSTRAINT `incidencia_ibfk_1` FOREIGN KEY (`usuario`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `incidencia_ibfk_2` FOREIGN KEY (`categoria`) REFERENCES `categoria` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `incidencia_ibfk_3` FOREIGN KEY (`problematica`) REFERENCES `problematica` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `incidencia_ibfk_4` FOREIGN KEY (`estado`) REFERENCES `estado` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
- 
+  ADD CONSTRAINT `incidencia_ibfk_4` FOREIGN KEY (`estado`) REFERENCES `estado` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `incidencia_ibfk_5` FOREIGN KEY (`usuario_res`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
+  
 
-
-
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
