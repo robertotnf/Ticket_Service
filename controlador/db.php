@@ -19,14 +19,14 @@ class BaseDeDatos
 		$this->pdo = new PDO("mysql:host=$this->host;port=$this->port;dbname=$this->db", $this->user, $this->pass);
 	}
 
-	function insertarUsuario($email, $contrasena, $administrador)
+	function insertarUsuario($email, $contrasena, $tecnico, $departamento)
 	{
-		$consulta = $this->pdo->prepare("INSERT INTO `usuarios` (`email`, `password`, `administrador`) VALUES ( :email, :contrasena, :administrador)");
+		$consulta = $this->pdo->prepare("INSERT INTO `usuarios` (`email`, `password`, `tecnico`, `departamento`) VALUES ( :email, :contrasena, :tecnico, :departamento)");
 		$array = [
 			":email" => $email,
 			":contrasena" => md5($contrasena),
-			":administrador" => $administrador
-
+			":tecnico" => $tecnico,
+			":departamento" => $departamento
 		];
 		$consulta->execute($array);
 		return $this->comprobarUsuario($email, $contrasena);
@@ -35,7 +35,7 @@ class BaseDeDatos
 	function comprobarUsuario($email, $password)
 	{
 
-		$consulta = $this->pdo->prepare("SELECT id,email,administrador FROM `usuarios` WHERE email = :email AND password= :password");
+		$consulta = $this->pdo->prepare("SELECT id,email,tecnico,departamento FROM `usuarios` WHERE email = :email AND password= :password");
 		$array = [
 			":email" => $email,
 			":password" => md5($password)
@@ -95,20 +95,32 @@ class BaseDeDatos
 
 	function listarIncidencias($usuario, $departamento, $texto, $categoria, $problematica, $estado)
 	{
-		$sql = "SELECT incidencia.id, email, departamento.nom_dep, incidencia.asunto, incidencia.descripcion , categoria.categoria, problematica.problematica, estado.estado,incidencia.estado as id_estado, incidencia.resolucion, incidencia.fecha_inicio, incidencia.usuario_res, incidencia.usuario
+		$sql = "SELECT 
+		incidencia.id, 
+		usuarios.email, 
+		(SELECT email FROM usuarios WHERE id = incidencia.usuario_res) as tecnico_email,
+		departamento.nom_dep, 
+		incidencia.asunto, 
+		incidencia.descripcion, 
+		categoria.categoria, 
+		problematica.problematica, 
+		estado.estado,
+		incidencia.estado as id_estado, 
+		incidencia.resolucion, 
+		incidencia.fecha_inicio, 
+		incidencia.fecha_fin,
+		incidencia.usuario_res, 
+		incidencia.usuario
 		 FROM incidencia
 		 INNER JOIN usuarios ON  incidencia.usuario = usuarios.id 
 		 INNER JOIN departamento ON incidencia.departamento = departamento.cod
 		 INNER JOIN categoria ON incidencia.categoria = categoria.id
 		 INNER JOIN problematica ON incidencia.problematica = problematica.id
-		 INNER JOIN estado ON incidencia.estado = estado.id WHERE 1=1";
+		 INNER JOIN estado ON incidencia.estado = estado.id 
+		 WHERE incidencia.departamento = :departamento ";
 
 		$params = [];
-
-		if ($departamento != -1) {
-			$sql .= " AND departamento LIKE :departamento";
-			$params['departamento'] = $departamento;
-		}
+		$params['departamento'] = $departamento;
 
 		if ($categoria != -1) {
 			$sql .= " AND incidencia.categoria LIKE :categoria";
@@ -129,7 +141,7 @@ class BaseDeDatos
 			$params['estado'] = $estado;
 		}
 		if (!empty($usuario)) {
-			if ($usuario["administrador"] == 1) {
+			if ($usuario["tecnico"] == 1) {
 				$sql .= " AND usuario_res LIKE :usuario ";
 			} else {
 				$sql .= " AND usuario LIKE :usuario ";
@@ -162,7 +174,11 @@ class BaseDeDatos
 
 	function setIncidencia($id_incidencia, $id_estado, $resolucion, $usuario_res)
 	{
-		$consulta = $this->pdo->prepare("UPDATE incidencia SET estado = :estado, resolucion = :resolucion, usuario_res = :usuario_res WHERE id = :id_incidencia");
+		if ($id_estado == 3 || $id_estado == 4) {
+			$consulta = $this->pdo->prepare("UPDATE incidencia SET estado = :estado, resolucion = :resolucion, usuario_res = :usuario_res, fecha_fin = NOW() WHERE id = :id_incidencia");
+		} else {
+			$consulta = $this->pdo->prepare("UPDATE incidencia SET estado = :estado, resolucion = :resolucion, usuario_res = :usuario_res WHERE id = :id_incidencia");
+		}
 		$array = [
 			":id_incidencia" => $id_incidencia,
 			":estado" => $id_estado,
@@ -189,12 +205,14 @@ class BaseDeDatos
 
 	function cancelarIncidencia($id_incidencia)
 	{
-		$consulta = $this->pdo->prepare("UPDATE incidencia SET estado = 4 WHERE id = :id_incidencia");
+		$consulta = $this->pdo->prepare("UPDATE incidencia SET estado = 4, fecha_fin = NOW() WHERE id = :id_incidencia");
 		$array = [
 			"id_incidencia" => $id_incidencia
 		];
 		$consulta->execute($array);
 	}
+
+
 	function totalIncidenciasEstado()
 	{
 		$consulta = $this->pdo->prepare("SELECT (SELECT COUNT(estado) FROM incidencia  WHERE estado = 1),(SELECT COUNT(estado) FROM incidencia  WHERE estado = 2),(SELECT COUNT(estado) FROM incidencia  WHERE estado = 3),(SELECT COUNT(estado) FROM incidencia  WHERE estado = 4) FROM DUAL;");
@@ -208,12 +226,19 @@ class BaseDeDatos
 			"enProceso" => $fila[1],
 			"cerradas" => $fila[2],
 			"canceladas" => $fila[3],
-			"pAbiertas" => number_format($fila[0] / $sumaTotal * 100, 0),
-			"pEnProceso" => number_format($fila[1] / $sumaTotal * 100, 0),
-			"pCerradas" => number_format($fila[2] / $sumaTotal * 100, 0),
-			"pCanceladas" => number_format($fila[3] / $sumaTotal * 100, 0)
+			"pAbiertas" => $this->porcentajes($fila[0], $sumaTotal),
+			"pEnProceso" => $this->porcentajes($fila[1], $sumaTotal),
+			"pCerradas" => $this->porcentajes($fila[2], $sumaTotal),
+			"pCanceladas" => $this->porcentajes($fila[3], $sumaTotal)
 		];
 		return $array;
+	}
+
+
+	function porcentajes($datos, $sumaTotal)
+	{
+		if ($sumaTotal == 0) return 0;
+		return number_format($datos / $sumaTotal * 100, 0);
 	}
 }
 $db = new BaseDeDatos();

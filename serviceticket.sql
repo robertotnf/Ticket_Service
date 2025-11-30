@@ -32,17 +32,6 @@ CREATE TABLE `categoria` (
   `categoria` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
---
--- Volcado de datos para la tabla `categoria`
---
-
-INSERT INTO `categoria` (`id`, `categoria`) VALUES
-(1, 'Unix'),
-(2, 'Wintel'),
-(3, 'Sistemas web'),
-(4, 'Big data'),
-(5, 'Bases de datos'),
-(6, 'Otro');
 
 -- --------------------------------------------------------
 
@@ -55,15 +44,6 @@ CREATE TABLE `departamento` (
   `nom_dep` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
---
--- Volcado de datos para la tabla `departamento`
---
-
-INSERT INTO `departamento` (`cod`, `nom_dep`) VALUES
-(1, 'Monitorizacion'),
-(2, 'CAU'),
-(3, 'Unix'),
-(4, 'Wintel');
 
 -- --------------------------------------------------------
 
@@ -76,14 +56,6 @@ CREATE TABLE `estado` (
   `estado` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
---
--- Volcado de datos para la tabla `estado`
---
-
-INSERT INTO `estado` (`id`, `estado`) VALUES
-(1, 'Abierto'),
-(2, 'En proceso'),
-(3, 'Cerrado');
 
 -- --------------------------------------------------------
 
@@ -117,17 +89,7 @@ CREATE TABLE `problematica` (
   `problematica` varchar(50) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_spanish_ci;
 
---
--- Volcado de datos para la tabla `problematica`
---
 
-INSERT INTO `problematica` (`id`, `problematica`) VALUES
-(1, 'Perdida de conexión'),
-(2, 'Proceso caído'),
-(3, 'Error Ratio'),
-(4, 'Cluster caido'),
-(5, 'Problema de espacio'),
-(6, 'Otro');
 
 -- --------------------------------------------------------
 
@@ -139,16 +101,9 @@ CREATE TABLE `usuarios` (
   `id` int(11) NOT NULL,
   `email` varchar(100) NOT NULL,
   `password` varchar(500) NOT NULL,
-  `administrador` tinyint(1) NOT NULL
+  `tecnico` tinyint(1) NOT NULL,
+  `departamento` int(50) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Volcado de datos para la tabla `usuarios`
---
-
-INSERT INTO `usuarios` (`id`, `email`, `password`, `administrador`) VALUES
-(1, 'roberto.tfe@hotmail.com', 'e10adc3949ba59abbe56e057f20f883e', 0),
-(14, 'aaaatien@gmail.com', 'e10adc3949ba59abbe56e057f20f883e', 1);
 
 --
 -- Índices para tablas volcadas
@@ -198,37 +153,37 @@ ALTER TABLE `usuarios`
 -- AUTO_INCREMENT de la tabla `categoria`
 --
 ALTER TABLE `categoria`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `departamento`
 --
 ALTER TABLE `departamento`
-  MODIFY `cod` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `cod` int(50) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `estado`
 --
 ALTER TABLE `estado`
-  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(5) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `incidencia`
 --
 ALTER TABLE `incidencia`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `problematica`
 --
 ALTER TABLE `problematica`
-  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(50) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT de la tabla `usuarios`
 --
 ALTER TABLE `usuarios`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 COMMIT;
 
 ALTER TABLE `incidencia`
@@ -236,9 +191,58 @@ ALTER TABLE `incidencia`
   ADD CONSTRAINT `incidencia_ibfk_2` FOREIGN KEY (`categoria`) REFERENCES `categoria` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `incidencia_ibfk_3` FOREIGN KEY (`problematica`) REFERENCES `problematica` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
   ADD CONSTRAINT `incidencia_ibfk_4` FOREIGN KEY (`estado`) REFERENCES `estado` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `incidencia_ibfk_5` FOREIGN KEY (`usuario_res`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-  
+  ADD CONSTRAINT `incidencia_ibfk_5` FOREIGN KEY (`departamento`) REFERENCES `departamento` (`cod`) ON DELETE CASCADE ON UPDATE CASCADE,
+  ADD CONSTRAINT `incidencia_ibfk_6` FOREIGN KEY (`usuario_res`) REFERENCES `usuarios` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
 
+--
+-- Volcado de datos para la tabla `categoria`
+--
+
+INSERT INTO `categoria` (`id`, `categoria`) VALUES
+(1, 'Unix'),
+(2, 'Wintel'),
+(3, 'Sistemas web'),
+(4, 'Big data'),
+(5, 'Bases de datos'),
+(6, 'Otro');
+--
+-- Volcado de datos para la tabla `departamento`
+--
+
+INSERT INTO `departamento` (`cod`, `nom_dep`) VALUES
+(1, 'Monitorizacion'),
+(2, 'CAU'),
+(3, 'Unix'),
+(4, 'Wintel');
+--
+-- Volcado de datos para la tabla `estado`
+--
+
+INSERT INTO `estado` (`id`, `estado`) VALUES
+(1, 'Abierto'),
+(2, 'En proceso'),
+(3, 'Cerrado'), 
+(4, 'Cancelado');
+--
+-- Volcado de datos para la tabla `problematica`
+--
+
+INSERT INTO `problematica` (`id`, `problematica`) VALUES
+(1, 'Perdida de conexión'),
+(2, 'Proceso caído'),
+(3, 'Error Ratio'),
+(4, 'Cluster caido'),
+(5, 'Problema de espacio'),
+(6, 'Otro');
+--
+-- Volcado de datos para la tabla `usuarios`
+--
+
+INSERT INTO `usuarios` (`id`, `email`, `password`, `tecnico`, `departamento`) VALUES
+(1, 'c@c.c', '827ccb0eea8a706c4c34a16891f84e7b', 0, 2),
+(2, 'd@d.d', '827ccb0eea8a706c4c34a16891f84e7b', 1, 2),
+(3, 'b@b.b', '827ccb0eea8a706c4c34a16891f84e7b', 1, 1),
+(4, 'a@a.a', '827ccb0eea8a706c4c34a16891f84e7b', 0, 1);
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
